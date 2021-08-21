@@ -25,24 +25,35 @@ class Locadora: Aluguel {
     }
 
     func alugar(exemplar: Filme){
-        if let vhs = exemplar as? Vhs { //Momento que é feito um downcasting de Filme para Vhs, se for vhs não poderá ser alugado.
-            print ("Erro: O filme \(vhs.titulo) não pode ser alugado pois é um vhs.")
-        } else { //Senão é Vhs, pode ser alugado
-            if alugado(exemplar: exemplar) {
-                print ("Erro: O filme \(exemplar.titulo) já está alugado.")
+        if !alugado(exemplar: exemplar){
+            if let dvd = exemplar as? Dvd {
+                dvd.alugado = true
+                print ("Sucesso: O filme '\(dvd.titulo)' foi alugado.")
+            } else if let bluray = exemplar as? Bluray {
+                bluray.alugado = true
+                print ("Sucesso: O filme '\(bluray.titulo)' foi alugado.")
             } else {
-                exemplar.alugado = true
-                print ("Sucesso: O filme \(exemplar.titulo) foi alugado.")
+                print ("Erro: O filme '\(exemplar.titulo)' não pode ser alugado.")
             }
+        } else {
+            print("Erro: O filme '\(exemplar.titulo)' já está alugado.")
         }
     }
 
     func alugado(exemplar: Filme) -> Bool {
-        return exemplar.alugado
+        if let dvd = exemplar as? Dvd{
+            return dvd.alugado
+        }
+        
+        if let bluray = exemplar as? Bluray{
+            return bluray.alugado
+        }
+        
+        return false
     }
 
     func usar(exemplar: Filme){
-        if let vhs = exemplar as? Vhs{ //Momento que é feito o downcasting de Filme para Vhs
+        if let vhs = exemplar as? Vhs{
             if usado(exemplar: vhs){
                 print ("Erro: O filme '\(vhs.titulo)' já está sendo usado.")
             } else {
@@ -61,12 +72,16 @@ class Locadora: Aluguel {
     func statusFilmes() {
         print("\n==============Status dos Filmes==============")
         for filme in self.filmes{
-            var status : String
+            var status : String = "disponível"
             
             if let vhs = filme as? Vhs {
-                status = vhs.usado ? "usado" : "disponivel para usar" // if ternário
-            } else {
-                status = filme.alugado ? "alugado" : "disponivel para alugar" // if ternário
+                status = vhs.usado ? "sendo usado" : "disponivel para usar"
+            }
+            if let dvd = filme as? Dvd {
+                status = dvd.alugado ? "alugado" : "disponivel para alugar"
+            }
+            if let bluray = filme as? Bluray {
+                status = bluray.alugado ? "alugado" : "disponivel para alugar"
             }
             
             print ("O filme '\(filme.titulo)' está \(status)")
@@ -99,23 +114,22 @@ class Filme {
     public let titulo: String
     public let anoDeLancamento: Int
     public let idiomaDasLegendas: [String]
-    public var alugado: Bool
 
-    init(imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String], alugado: Bool) {
+    init(imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String]) {
         self.imdb = imdb
         self.titulo = titulo
         self.anoDeLancamento = anoDeLancamento
         self.idiomaDasLegendas = idiomaDasLegendas
-        self.alugado = alugado
     }
 }
 
 class Dvd: Filme {
     private var zona: String
+    public var alugado: Bool = false
   
-    init(zona: String, imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String], alugado: Bool) {
+    init(zona: String, imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String]) {
         self.zona = zona
-        super.init(imdb: imdb, titulo: titulo, anoDeLancamento: anoDeLancamento, idiomaDasLegendas: idiomaDasLegendas, alugado: alugado)
+        super.init(imdb: imdb, titulo: titulo, anoDeLancamento: anoDeLancamento, idiomaDasLegendas: idiomaDasLegendas)
     }
 }
 
@@ -126,7 +140,7 @@ class Vhs: Filme {
     init(usado: Bool, dataDeFabricacao: Int, imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String]) {
         self.usado = usado
         self.dataDeFabricacao = dataDeFabricacao
-        super.init(imdb: imdb, titulo: titulo, anoDeLancamento: anoDeLancamento, idiomaDasLegendas: idiomaDasLegendas, alugado: false)
+        super.init(imdb: imdb, titulo: titulo, anoDeLancamento: anoDeLancamento, idiomaDasLegendas: idiomaDasLegendas)
     }
 }
 
@@ -139,17 +153,18 @@ enum Capacidade {
 
 class Bluray: Filme {
     public let capacidade : Capacidade
+    public var alugado : Bool = false
     
-    init(capacidade: Capacidade, imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String], alugado: Bool) {
+    init(capacidade: Capacidade, imdb: Int, titulo: String, anoDeLancamento: Int, idiomaDasLegendas: [String]) {
         self.capacidade = capacidade
-        super.init(imdb: imdb, titulo: titulo, anoDeLancamento: anoDeLancamento, idiomaDasLegendas: idiomaDasLegendas, alugado: alugado)
+        super.init(imdb: imdb, titulo: titulo, anoDeLancamento: anoDeLancamento, idiomaDasLegendas: idiomaDasLegendas)
     }
 }
 
 
 var filmes : [Filme] = [
-    Dvd(zona: "zona1", imdb: 345, titulo: "Nos tempos da brilhantina", anoDeLancamento: 1960, idiomaDasLegendas: ["Ingles", "Portugues"], alugado:false),
-    Bluray(capacidade: .cinquentaGB, imdb: 456, titulo: "Senhor dos anéis", anoDeLancamento: 2001, idiomaDasLegendas: ["Ingles", "Portugues", "Espanhol"], alugado: false),
+    Dvd(zona: "zona1", imdb: 345, titulo: "Nos tempos da brilhantina", anoDeLancamento: 1960, idiomaDasLegendas: ["Ingles", "Portugues"]),
+    Bluray(capacidade: .cinquentaGB, imdb: 456, titulo: "Senhor dos anéis", anoDeLancamento: 2001, idiomaDasLegendas: ["Ingles", "Portugues", "Espanhol"]),
     Vhs(usado: false, dataDeFabricacao: 1992, imdb: 234, titulo: "O Rei Leão", anoDeLancamento: 1992, idiomaDasLegendas: ["Ingles", "Portugues", "Espanhol"])
 ]
 
